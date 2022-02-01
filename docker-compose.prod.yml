@@ -11,7 +11,7 @@ services:
       context: ./
       args:
         PHP_INI_FILE: docker/php/php.prod.ini
-        XDEBUG: "false"
+        WITH_XDEBUG: "false"
     working_dir: /app
     env_file:
       - .env

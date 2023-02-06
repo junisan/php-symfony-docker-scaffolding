@@ -1,0 +1,50 @@
+version: "3.8"
+
+networks:
+  myapp:
+volumes:
+  mysqldata:
+
+services:
+  app:
+    build:
+      context: ./
+      args:
+        PHP_INI_FILE: docker/php/php.prod.ini
+        WITH_XDEBUG: "false"
+    working_dir: /app
+    env_file:
+      - .env
+    expose:
+      - 9000
+    networks:
+      - myapp
+
+  nginx:
+    build:
+      context: ./
+      dockerfile: ./docker/nginx/Dockerfile
+      args:
+        APP_ENV: prod
+    depends_on:
+      - app
+    ports:
+      - 8080:80
+    networks:
+      - myapp
+
+  mysql:
+    image: mysql:8
+    command: --default-authentication-plugin=mysql_native_password
+    env_file:
+      - ./docker/mysql/.env
+    healthcheck:
+      test: "/usr/bin/mysql --user=root --password=$$MYSQL_ROOT_PASSWORD --execute \"SHOW DATABASES;\""
+      interval: 30s
+      timeout: 5s
+    volumes:
+      - mysqldata:/var/lib/mysql
+    ports:
+      - "3006:3006"
+    networks:
+      - myapp
